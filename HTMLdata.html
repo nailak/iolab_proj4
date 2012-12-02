@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>IO LAB</title>
+  <script src="http://code.jquery.com/jquery-latest.js"></script>
+  <!-- <link rel="stylesheet" href="style.css"> -->
+  <style type="text/css"></style>
+
+  <script type="text/javascript">
+    
+    //so far this only runs in console, I need to make it open the ischool tab or make the http call in th bg
+    //Scrape webpage data===============================
+    all=$('.person-teaser').text()
+    content=all.replace(/\s+<!--\s\{\s\S+\s\}\s\/\/-->/g,' *name*') //remove script
+    content=content.replace(/[a-zA-Z]+\s\[&#100;&#111;t\]\s?[a-zA-Z]+\s\[&#97;t\]\sischool\s\[&#100;&#111;t\]\sberkeley\s\[&#100;&#111;t\]\sedu/g,"") //remove 2 word email junk script
+    content=content.replace(/[a-zA-Z]+\s\[&#97;t\]\sischool\s\[&#100;&#111;t\]\sberkeley\s\[&#100;&#111;t\]\sedu/g,"")                           //remove 1 word email jink script
+    content=content.trim()                  //remove leading and ending spaces
+    cleanText=content.replace(/\n+/g,'|')   //replace new lines with pipes
+    cleanText=cleanText.replace(/\s\s+/g,'')//remove spaces
+    cleaner=cleanText.replace(/\|+/g,'|')   //reduce pipes
+
+    //format in an object where obj[name]=[name],[email],[year],[interests]
+    count=0
+    students={}
+     for (var i in contentArray){
+      if (contentArray[i].slice(-6)=="*name*"){count+=1;name=contentArray[i].replace(' *name*','');students[name]=[name]} 
+      else if (contentArray[i].slice(-8)=='@ischool'){students[name].push(contentArray[i])}
+      else if (contentArray[i].slice(0,4)=='MIMS'){students[name].push('Degree: '+contentArray[i])}
+      else if (contentArray[i].slice(0,4)=='Ph.D'){students[name].push('Degree: '+contentArray[i])}
+      else if (contentArray[i].slice(0,6)=='Focus:'){students[name].push(contentArray[i])}
+      // else console.log('not needed');
+    }
+   
+  </script>
+
+</head>
+
+<body>
+
+  <div id="header_container" class="shadow">  
+  <h3 class="container">IO Lab Project 4</h3>
+  </div>
+  <div id="results" class="container">
+  </div> 
+
+</body>
+</html>
+
