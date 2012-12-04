@@ -9,8 +9,7 @@ $("document").ready(function() {
 
 // ON DOC LOAD: WAIT FOR USER TO CLIC?  #
 //#######################################
-//Note: ideally we shouldnt need to click, problem is data still couldnt be scraped when page was loaded
-//maybe set a timer that submits instead?
+//Note: ideally we shouldnt need to click, problem is data still couldnt be scraped when page was just "loaded" so I made it on click.. option: set a timer that submits instead?
 $(window).load(function () {
 	console.log(document.readyState);
 	console.log(document);
@@ -46,16 +45,36 @@ $(window).load(function () {
 
         //split at new lines and place in array
         contentArray=clean.split('\n');
+        console.log("CONTENT ARRAY: ",contentArray.length);
         console.log(contentArray);
 
+        //get student images
+        grabImages=$(".field-field-person-photo img").each(function() {
+            $(this).html();});
+        imageArray=[];
+        for(var image in grabImages){imageArray.push(grabImages[image].src)}
+        console.log("IMAGE ARRAY : ",imageArray.length);
+        console.log(imageArray);
+
+
         //format all data in an object where obj[name]=[name,year,[interests,int,int]]
-        count=0
+        // count=0;
+        imageNum=0;
         students={} //all student data will be added to this obj
         nameFormat=/[a-zA-z]+ [a-zA-z]+/
         for (var i in contentArray){
+            
             // if(!nameFormat.test(contentArray[i])){console.log(contentArray[i])}
-            if (contentArray[i].slice(-6)=="*name*"){count+=1;name=contentArray[i].replace(' *name*','');students[name]=[name]} 
-            else if (contentArray[i].slice(-8)=='@ischool'){students[name].push(contentArray[i])}
+            //create key with student name
+            if (contentArray[i].slice(-6)=="*name*"){
+                // count+=1;
+                name=contentArray[i].replace(' *name*','');
+                students[name]=[name];
+                //add image for this student key
+                students[name].push(imageArray[imageNum]);
+                imageNum+=1;
+            } 
+            // else if (contentArray[i].slice(-8)=='@ischool'){students[name].push(contentArray[i])}
             else if (contentArray[i].slice(0,4)=='MIMS'){students[name].push(contentArray[i])}
             else if (contentArray[i].slice(0,4)=='Ph.D'){students[name].push(contentArray[i])}
             else if (contentArray[i].slice(0,6)=='Focus:'){
@@ -68,17 +87,16 @@ $(window).load(function () {
             }
             else{console.log(">> Items NOT added: ");console.log(contentArray[i])}
         }
-        //Note: for students that dont have a focus, should we add students[3]='No focus'
 
         console.log('>> Students Obj:')
         console.log(students);
-        console.log(">> Print out students content: ")
+
+        //Render all student data on page
         for (i in students){
-            $('#result').append('<p>'+students[i]+'</p>');
-            console.log(students[i]);
+            $('#result').append('<div class="studBlock"><img src='+students[i][1]+'></img><ul style="display:inline-block;margin-left: 5px;"><li>Name: '+students[i][0]+'</li><li>  Degree: '+students[i][2]+'</li><li>  Focus: '+students[i][3]+'</li></ul></div>');  
         }
 
-        //now call function that takes student object and find assign category to each focus
+        //call function that takes student object and assign category to each focus
         findCategories(students);
 
     }// end cleanText()
@@ -89,7 +107,7 @@ $(window).load(function () {
     function findCategories(studentObj){
         
         allFocus=[]  //list of all focus regardless of student (Phrases)
-        for (i in students){for (var e in students[i][2]){allFocus.push(students[i][2][e])}}
+        for (var stud in students){for (var foc in students[stud][3]){allFocus.push(students[stud][3][foc])}}
         
         //match each to dictionary (clean interests)
         var focusCategory={}; // will contain {focus: category1, category2}
@@ -98,15 +116,22 @@ $(window).load(function () {
         wordsDict={'design':'Design','mobile':'Mobile','interaction':'Design','hci':'Human-Computer Interaction','experience':'Design','ux':'Design','UI':'Design','management':'Management'}
 
         //loop throught the focus phrases, split each one, check each word against dict then classify the full phrase
-        for (var i in allFocus){
-            var currentFocus=allFocus[i];
+        console.log('>>NOW CLASSIFYING FOCUS: ');
+        for (var focusPhrase in allFocus){
+            var currentFocus=allFocus[focusPhrase];
+
+            //TEST SECTION ============================can we match phrases using regex instead of splitting all words and looping??
+            // focusFormat=/\sdesign\s/   //should match an item in the dictionary
+            // if(focusFormat.test(currentFocus)){console.log('Match found!')}
+            //END TEST SECTION=========================
+
             var curFocusArray=currentFocus.toLowerCase().split(" ");//resuts in array of words for that focus
             console.log('THE CURRENT FOCUS PHRASE IS: ',currentFocus," < which is split to: >",curFocusArray);
 
             //now loop through current focus and check if any of the words are in the dictionary
             var tempCatArray={};
-            for (var focus in curFocusArray){
-                var curWord=curFocusArray[focus];
+            for (var focusWord in curFocusArray){
+                var curWord=curFocusArray[focusWord];
                 // console.log('current focus Array..');
                 //tell us what category the word belongs to
                 if (curWord in wordsDict){
