@@ -91,11 +91,6 @@ $(window).load(function () {
         console.log('>> Students Obj:')
         console.log(students);
 
-        //Render all student data on page
-        for (i in students){
-            $('#result').append('<div class="studBlock"><img src='+students[i][1]+'></img><ul style="display:inline-block;margin-left: 5px;"><li>Name: '+students[i][0]+'</li><li>  Degree: '+students[i][2]+'</li><li>  Focus: '+students[i][3]+'</li></ul></div>');  
-        }
-
         //call function that takes student object and assign category to each focus
         findCategories(students);
 
@@ -112,9 +107,10 @@ $(window).load(function () {
         //match each to dictionary (clean interests)
         var focusCategory={}; // will contain {focus: category1, category2}
         var categoryFocus={}; // will contain {category: focus1 , focus 2}
-    
-        wordsDict={'design':'Design','mobile':'Mobile','interaction':'Design','hci':'Human-Computer Interaction','experience':'Design','ux':'Design','UI':'Design','management':'Management'}
-
+        //test dict
+        // wordsDict={'design':'Design','mobile':'Mobile','interaction':'Design','hci':'Human-Computer Interaction','experience':'Design','ux':'Design','UI':'Design','management':'Management'}
+        //real dict
+        wordsDict={"design":"Design", "interface":"Design", "UX":"Design", "UI":"Design", "UX/UI":"Design", "architecture":"Design", "usability":"Design", "hci":"HCI", "interaction":"HCI", "human-computer":"HCI", "data":"Big Data", "analytics":"Big Data", "mining":"Big Data", "modeling":"Big Data", "informatics":"Big Data", "research":"User Research", "management":"Management", "visualization":"Info Viz", "ictd":"ICTD", "communication":"ICTD", "policy":"Policy", "regulation":"Policy", "cyberlaw":"Policy", "law":"Policy", "governance":"Policy", "government":"Policy", "mobile":"Mobile", "mobility":"Mobile", "entrepreneurship":"Entrepreneurship", "innovation":"Entrepreneurship", "entrepreneur":"Entrepreneurship", "privacy":"Privacy & Security", "security":"Privacy & Security", "business":"Business Solutions",  "strategy":"Business Solutions",  "strategies":"Business Solutions",  "strategic":"Business Solutions",  "solutions":"Business Solutions",  "marketing":"Business Solutions",  "enterprise":"Business Solutions",  "enterprises":"Business Solutions",  "consulting":"Business Solutions",  "cscw":"Business Solutions",  "cooperative":"Business Solutions",  "computer-supported":"Business Solutions",  "organizations":"Business Solutions"}
         //loop throught the focus phrases, split each one, check each word against dict then classify the full phrase
         console.log('>>NOW CLASSIFYING FOCUS: ');
         for (var focusPhrase in allFocus){
@@ -126,7 +122,7 @@ $(window).load(function () {
             //END TEST SECTION=========================
 
             var curFocusArray=currentFocus.toLowerCase().split(" ");//resuts in array of words for that focus
-            console.log('THE CURRENT FOCUS PHRASE IS: ',currentFocus," < which is split to: >",curFocusArray);
+            // console.log('THE CURRENT FOCUS PHRASE IS: ',currentFocus," < which is split to: >",curFocusArray);
 
             //now loop through current focus and check if any of the words are in the dictionary
             var tempCatArray={};
@@ -140,14 +136,18 @@ $(window).load(function () {
                     console.log('>> Category of word: ',curWord," - IS -",tempCategory);
              
                     //make sure category isnt already in the temp array
-                    if (tempCategory in tempCatArray){console.log(">> CATEGORY: ",tempCategory," EXISTS in tempCatArray... ");}
-                    else{tempCatArray[tempCategory]=tempCategory;console.log(">> CATEGORY: ",tempCategory," PUSHED to tempCatArray.. ",tempCatArray);}
+                    if (tempCategory in tempCatArray){
+                        // console.log(">> CATEGORY: ",tempCategory," EXISTS in tempCatArray... ");
+                    }
+                    else{tempCatArray[tempCategory]=tempCategory;
+                        // console.log(">> CATEGORY: ",tempCategory," PUSHED to tempCatArray.. ",tempCatArray);
+                    }
                 } else{console.log('>> word not in dict ..',curWord)}
             }
  
             // focusCategory end result is a list of [focus1: category1, focus2: category2, focus3: category3]  
             for (var x in tempCatArray){
-                console.log('>> the focus ',currentFocus, ' belongs to category', tempCatArray[x]);
+                // console.log('>> the focus ',currentFocus, ' belongs to category', tempCatArray[x]);
                 focusCategory[currentFocus]= tempCatArray[x];
                 categoryFocus[tempCatArray[x]]=[];//sets all categories as keys
             } 
@@ -162,9 +162,23 @@ $(window).load(function () {
         //check how many focus per category 
         for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
 
+    console.log('>>The focusCategory Obj is :');
     console.log(focusCategory);
+    console.log('>>The categoryFocus Obj is :');
     console.log(categoryFocus);
+
+    // Render all student data on page
+    for (i in students){
+        studFocCat=[];
+        for (foc in students[i][3]){ 
+            // console.log('category for '+students[i][3][foc]+' <is> '+focusCategory[students[i][3][foc]]);
+            studFocCat.push(focusCategory[students[i][3][foc]]);
+        }        
+        $('#result').append('<div class="studBlock"><img src='+students[i][1]+'></img><ul style="display:inline-block;margin-left: 5px;"><li>Name: '+students[i][0]+'</li><li>  Degree: '+students[i][2]+'</li><li>  Focus: '+students[i][3]+'</li><li> Categories: '+ studFocCat+'</li></ul></div>');  
+    }
+
     }//end findCategories()
+
 
 });//end on page load
 
