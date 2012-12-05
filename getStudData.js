@@ -110,9 +110,14 @@ $(window).load(function () {
         //test dict
         // wordsDict={'design':'Design','mobile':'Mobile','interaction':'Design','hci':'Human-Computer Interaction','experience':'Design','ux':'Design','UI':'Design','management':'Management'}
         //real dict
-        wordsDict={"design":"Design", "interface":"Design", "UX":"Design", "UI":"Design", "UX/UI":"Design", "architecture":"Design", "usability":"Design", "hci":"HCI", "interaction":"HCI", "human-computer":"HCI", "data":"Big Data", "analytics":"Big Data", "mining":"Big Data", "modeling":"Big Data", "informatics":"Big Data", "research":"User Research", "management":"Management", "visualization":"Info Viz", "ictd":"ICTD", "communication":"ICTD", "policy":"Policy", "regulation":"Policy", "cyberlaw":"Policy", "law":"Policy", "governance":"Policy", "government":"Policy", "mobile":"Mobile", "mobility":"Mobile", "entrepreneurship":"Entrepreneurship", "innovation":"Entrepreneurship", "entrepreneur":"Entrepreneurship", "privacy":"Privacy & Security", "security":"Privacy & Security", "business":"Business Solutions",  "strategy":"Business Solutions",  "strategies":"Business Solutions",  "strategic":"Business Solutions",  "solutions":"Business Solutions",  "marketing":"Business Solutions",  "enterprise":"Business Solutions",  "enterprises":"Business Solutions",  "consulting":"Business Solutions",  "cscw":"Business Solutions",  "cooperative":"Business Solutions",  "computer-supported":"Business Solutions",  "organizations":"Business Solutions"}
+        wordsDict={"design":"Design", "interface":"Design", "ux":"Design", "ui":"Design", "ux/ui":"Design", "architecture":"Design", "usability":"Design", "hci":"HCI", "interaction":"HCI", "human-computer":"HCI", "data":"Big Data", "analytics":"Big Data", "mining":"Big Data", "modeling":"Big Data", "informatics":"Big Data", "research":"User Research", "management":"Management", "visualization":"Info Viz", "ictd":"ICTD", "communication":"ICTD", "policy":"Policy", "regulation":"Policy", "cyberlaw":"Policy", "law":"Policy", "governance":"Policy", "government":"Policy", "mobile":"Mobile", "mobility":"Mobile", "entrepreneurship":"Entrepreneurship", "innovation":"Entrepreneurship", "entrepreneur":"Entrepreneurship", "privacy":"Privacy & Security", "privacy.":"Privacy & Security", "security":"Privacy & Security", "business":"Business Solutions",  "strategy":"Business Solutions",  "strategies":"Business Solutions",  "strategic":"Business Solutions",  "solutions":"Business Solutions",  "marketing":"Business Solutions",  "enterprise":"Business Solutions",  "enterprises":"Business Solutions",  "consulting":"Business Solutions",  "cscw":"Business Solutions",  "cooperative":"Business Solutions",  "computer-supported":"Business Solutions",  "organizations":"Business Solutions"}
         //loop throught the focus phrases, split each one, check each word against dict then classify the full phrase
         console.log('>>NOW CLASSIFYING FOCUS: ');
+        // phraseCount=0
+        var phraseCountArray={};
+        for (var i in wordsDict){phraseCountArray[wordsDict[i]]=0}
+        
+
         for (var focusPhrase in allFocus){
             var currentFocus=allFocus[focusPhrase];
 
@@ -144,14 +149,17 @@ $(window).load(function () {
                     }
                 } else{console.log('>> word not in dict ..',curWord)}
             }
- 
+    
             // focusCategory end result is a list of [focus1: category1, focus2: category2, focus3: category3]  
             for (var x in tempCatArray){
                 // console.log('>> the focus ',currentFocus, ' belongs to category', tempCatArray[x]);
                 focusCategory[currentFocus]= tempCatArray[x];
                 categoryFocus[tempCatArray[x]]=[];//sets all categories as keys
+                phraseCountArray[tempCatArray[x]]+=1;
             } 
+
         }  
+        
 
         // categoryFocus end result is a list of [category: [focus1,[focus2,focus2]] 
         for (var focus in focusCategory){
@@ -160,8 +168,9 @@ $(window).load(function () {
             categoryFocus[curCategory].push(focus);//the focus phrase (value) is appended to the array for category(key)
         }
         //check how many focus per category 
-        for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
-
+        // for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
+    console.log('>>The phraseCountArray is (real focus counts):');
+    console.log(phraseCountArray);
     console.log('>>The focusCategory Obj is :');
     console.log(focusCategory);
     console.log('>>The categoryFocus Obj is :');
