@@ -88,9 +88,6 @@ $(window).load(function () {
             else{console.log(">> Items NOT added: ");console.log(contentArray[i])}
         }
 
-        console.log('>> Students Obj:')
-        console.log(students);
-
         //call function that takes student object and assign category to each focus
         findCategories(students);
 
@@ -167,24 +164,29 @@ $(window).load(function () {
             curCategory=focusCategory[focus];// this is the category of that focus
             categoryFocus[curCategory].push(focus);//the focus phrase (value) is appended to the array for category(key)
         }
-        //check how many focus per category 
-        // for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
-    console.log('>>The phraseCountArray is (real focus counts):');
-    console.log(phraseCountArray);
-    console.log('>>The focusCategory Obj is :');
-    console.log(focusCategory);
-    console.log('>>The categoryFocus Obj is :');
-    console.log(categoryFocus);
 
     // Render all student data on page
     for (i in students){
         studFocCat=[];
         for (foc in students[i][3]){ 
             // console.log('category for '+students[i][3][foc]+' <is> '+focusCategory[students[i][3][foc]]);
-            studFocCat.push(focusCategory[students[i][3][foc]]);
+            focusCat=focusCategory[students[i][3][foc]]
+            studFocCat.push(focusCat); 
         }        
+        students[i].push(studFocCat);
         $('#result').append('<div class="studBlock"><img src='+students[i][1]+'></img><ul style="display:inline-block;margin-left: 5px;"><li>Name: '+students[i][0]+'</li><li>  Degree: '+students[i][2]+'</li><li>  Focus: '+students[i][3]+'</li><li> Categories: '+ studFocCat+'</li></ul></div>');  
     }
+
+    //check how many focus per category 
+    // for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
+    console.log('>>The phraseCountArray is (real focus counts):');
+    console.log(phraseCountArray);
+    console.log('>>The focusCategory Obj is :');
+    console.log(focusCategory);
+    console.log('>>The categoryFocus Obj is :');
+    console.log(categoryFocus);
+    console.log('>> Students Obj:')
+    console.log(students);
 
     }//end findCategories()
 
