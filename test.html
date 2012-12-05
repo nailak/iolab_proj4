@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<head>
+	<title>TEST</title>
+  <style>
+    .node {
+      stroke: #fff;
+      stroke-width: 1.5px;
+    }
+    .link {
+      stroke: #999;
+      stroke-opacity: .6;
+    }
+  </style>
+</head>
+
+<body>
+  <script src="http://d3js.org/d3.v3.min.js"></script>
+  <script>
+    // initialize the people object
+    var peopleData = {
+      "Naila AlKhalawi":["MIMS 2013",["User Research","Design","Management","Info Viz"]],
+      "Divya Anand":["MIMS 2014",["Management","Design"]],
+      "Kay Ashaolu":["MIMS 2013",["HCI","Entrepreneurship"]],
+      "Ryan Baker":["MIMS 2014",["Business Solutions"]],
+      "Sophie Barness":["MIMS 2014",["Design"]],
+      "Sebastian Benthall":["Ph.D. Student",["Big Data"]],
+      "Mark Brazinski":["MIMS 2014",["Business Solutions"]],
+      "Andy Brooks":["Ph.D. Student",["Business Solutions"]],
+      "Sara Cambridge":["MIMS 2013",["User Research","Mobile"]],
+      "Kiran Chandramohanan":["MIMS 2013",["ICTD","HCI","Design","Policy"]],
+      "Arthur Che":["MIMS 2013",["Design","Entrepreneurship","Business Solutions"]],
+      "Shaohan Chen":["MIMS 2014",["Design","Business Solutions","Info Viz"]],
+      "Yu-Hsiang (Sean) Chen":["MIMS 2013",["HCI","Design","Mobile"]],
+      "Rui Dai":["MIMS 2013",["Management","Design"]],
+      "Isha Dandavate":["MIMS 2014",["Business Solutions","Info Viz"]],
+      "Laura Devendorf":["Ph.D. Student",["HCI"]],
+      "Ajeeta Dhole":["MIMS 2014",["User Research","HCI"]],
+      "Nick Doty":["Ph.D. Student",["Privacy & Security"]],
+      "Megan Finn":["Ph.D. Student",["Business Solutions"]],
+      "Sydney Friedman":["MIMS 2014",["HCI"]],
+      "R. Stuart Geiger":["Ph.D. Student",["Business Solutions"]],
+      "Ishita Ghosh":["Ph.D. Student",["Mobile","ICTD"]],
+      "Max Gutman":["MIMS 2014",["Big Data","Management","Entrepreneurship","Design"]],
+      "Jacob Hartnell":["MIMS 2014",["Privacy & Security"]],
+      "Sandra Helsley":["MIMS 2014",["User Research","Design"]],
+      "Gilbert Hernandez":["MIMS 2013",["Design","HCI"]],
+      "Michael Hintze":["MIMS 2013",["Business Solutions","Design","Mobile","HCI","Management"]],
+      "Kate Hsiao":["MIMS 2014",["HCI","Design","Mobile"]],
+      "Corey Hyllested":["MIMS 2014",["Business Solutions"]],
+      "Priyadarshini Iyer":["MIMS 2014",["Business Solutions","Info Viz","ICTD"]],
+      "Lisa Jervis":["MIMS 2014",["Business Solutions"]],
+      "Carinne Johnson":["MIMS 2013",["Design","Info Viz","HCI","User Research"]],
+      "Eunkwang Joo":["MIMS 2014",["Entrepreneurship","Mobile"]],
+      "Eungchan Kim":["MIMS 2014",["User Research"]],
+      "Naehee Kim":["MIMS 2013",["Mobile","Big Data"]],
+      "Jennifer King":["Ph.D. Student",["Policy","Privacy & Security","Design"]],
+      "Vimal Kini":["MIMS 2013",["Management"]],
+      "Taeil Kwak":["MIMS 2013",["Design","HCI"]]
+    };
+    console.log(peopleData);
+
+    // initialize the categories object
+    var categories = {
+      "Big Data":0,"Business Solutions":1,"Design":2,"Entrepreneurship":3,"HCI":4,"ICTD":5,"Info Viz":6,"Management":7,"Mobile":8,"Policy":9,"Privacy & Security":10,"User Research":11};
+    console.log(categories);
+
+    /* This is a sample of what the d3 data should look like
+    var sampleData = {
+      "nodes":[
+        {"name":"Naila AlKhalawi","group":1},
+        {"name":"Taeil Kwak","group":1},
+        {"name":"Max Gutman","group":1},
+        {"name":"Carinne Johnson","group":1},
+        {"name":"User Experience Research","group":2},
+        {"name":"Product Management","group":2},
+      ],
+      "links":[
+        {"source":0,"target":4,"value":1},
+        {"source":1,"target":4,"value":1},
+        {"source":2,"target":4,"value":1},
+        {"source":1,"target":5,"value":1},
+        {"source":2,"target":5,"value":1},
+        {"source":3,"target":5,"value":1}
+      ]
+    }
+    */
+
+    //convert the people and categories to nodes and links
+    var graphData = {
+      "nodes":[],
+      "links":[]
+    };
+
+    // Add people as nodes and create links for each person
+    var numPeople = Object.keys(peopleData).length;
+    var category = "";
+    var categoryIndex = 0;
+    var personNumber = 0;
+    var categoryNodeNum = 0;
+
+    for (var key in peopleData){
+      // Add people to nodes
+      graphData.nodes.push({"name":key,"group":1});
+        // Add people's categories to links
+        for (var i=0;i<peopleData[key][1].length;i++){
+          category = peopleData[key][1][i]; // name of category
+          categoryIndex = categories[category]; // index of category
+          categoryNodeNum = numPeople + categoryIndex; // index + number of people = category's index in nodes array
+          graphData.links.push({"source":personNumber,"target":categoryNodeNum,"value":1});
+        }
+      personNumber += 1;
+    }
+    // Add categories to nodes
+    for (var key in categories){
+      graphData.nodes.push({"name":key,"group":2});
+    }
+    console.log(graphData);
+
+    // This is the start of the D3 code
+    var width = 960,
+      height = 500;
+
+    var color = d3.scale.category20();
+
+    var force = d3.layout.force()
+        .charge(-120)
+        .linkDistance(30)
+        .size([width, height])
+        .nodes(graphData.nodes)
+        .links(graphData.links)
+        .start();
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    var link = svg.selectAll("line.link")
+        .data(graphData.links)
+      .enter().append("line")
+        .attr("class", "link")
+        .style("stroke-width", function(d) { return Math.sqrt(d.value); });
+
+    var node = svg.selectAll("circle.node")
+        .data(graphData.nodes)
+      .enter().append("circle")
+        .attr("class", "node")
+        .attr("r", 5)
+        .style("fill", function(d) { return color(d.group); })
+        .call(force.drag);
+
+    node.append("title")
+        .text(function(d) { return d.name; });
+
+    force.on("tick", function() {
+      link.attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
+
+      node.attr("cx", function(d) { return d.x; })
+          .attr("cy", function(d) { return d.y; });
+    });
+
+  </script>
+</body>
