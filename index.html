@@ -9,16 +9,31 @@
     #content{display: none;}
     </style>
     <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script type="text/javascript"></script>
+    <script type="text/javascript" src="getStudData.js" ></script>
+    <script type="text/javascript">
+    
+        $("document").ready(function() {
+
+            //load webpage from php
+            $("#content").load(
+                "http://people.ischool.berkeley.edu/~nkhalawi/projects/iolab_proj4/curl2.php #content-area", 
+                function(text) {
+//                    console.log(text)
+                    cleanText($(text));
+                    render();
+                }
+            ); 
+       });
+    
+    </script>
 </head>
 
 <body>
-    <a id="getData"  href='#'>Click here to get student data</a>
+
     <!-- content element is where scraped student data is initially loaded, its hidden in the css -->
     <div id="content"></div>
     <!-- result element is where scraped student data is later rendered after we format it in js, this can be deleted later -->
     <div id="result"></div>
     <!-- script that gets studend data -->
-    <script type="text/javascript" src="getStudData.js" ></script>
 </body>
 </html>
