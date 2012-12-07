@@ -1,6 +1,7 @@
 
 // CLEAN THE DATA AND PUT IT INTO AN OBJ #
 //########################################
+var phraseCountArray = {}; // will contain {category: count}
 var focusCategory = {}; // will contain {focus: category1, category2}
 var categoryFocus = {}; // will contain {category: focus1 , focus 2}
 var students = {}; //all student data will be added to this obj
@@ -38,10 +39,11 @@ function cleanText(data) {
 
     imageArray = [];
     $(".field-field-person-photo img", text).each(function () {
-        imageArray.push(this.src)
+        var fixedUrl = "http://www.ischool.berkeley.edu/" + this.src.split("/").slice(3).join("/");
+        imageArray.push(fixedUrl)
     });
     //console.log("IMAGE ARRAY : ",imageArray.length);
-    //console.log(imageArray);
+    // console.log(imageArray);
 
 
     //format all data in an object where obj[name]=[name,year,[interests,int,int]]
@@ -148,7 +150,6 @@ function cleanText(data) {
     //loop throught the focus phrases, split each one, check each word against dict then classify the full phrase
     //console.log('>>NOW CLASSIFYING FOCUS: ');
     // phraseCount=0
-    var phraseCountArray = {};
     for (var i in wordsDict) {
         phraseCountArray[wordsDict[i]] = 0
     }
@@ -220,8 +221,8 @@ function cleanText(data) {
 
     //check how many focus per category 
     // for(var category in categoryFocus){console.log(category," category count is :",categoryFocus[category].length)}
-    //console.log('>>The phraseCountArray is (real focus counts):');
-    ///console.log(phraseCountArray);
+    // console.log('>>The phraseCountArray is (real focus counts):');
+    // console.log(phraseCountArray);
     //console.log('>>The focusCategory Obj is :');
     //console.log(focusCategory);
     //console.log('>>The categoryFocus Obj is :');

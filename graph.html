@@ -1,76 +1,85 @@
 <!DOCTYPE html>
-<meta charset="utf-8">
-<script src="http://d3js.org/d3.v2.min.js?2.9.3"></script>
-<style>
-body {
+
+<head>
+  <meta charset="utf-8">
+  <title>Ischool Foci</title>
+  <script src="http://d3js.org/d3.v2.min.js?2.9.3"></script>
+  <style>
+  body {
     //background-color: #D0CBAC;
-}
-.link {
-  stroke: #999;
-  stroke-opacity: .6;
-}
-
-.node text {
-  pointer-events: none;
-  font: 14px sans-serif;
-}
-
-.student {
-    opacity:0.5;
+    margin:0;
+    font-family: arial,"Helvetica Neue",helvetica,sans-serif;
+  }
+  .link {
+    stroke: #EEE;
+    stroke-opacity: .9;
+  }
+  .node text {
+    pointer-events: none;
+    font: 14px sans-serif;
+  }
+  .student {
+    opacity:0.6;
     font-size: 11px;
-}
-
-.category {
+  }
+  .category {
     opacity:0.7;
     font-size: 16px;
-}
-
-#students {
+  }
+  #students {
     overflow-x:scroll;
     overflow-y: hidden;
-    height: 72px;
+    /*height: 72px;*/
     width: auto;
-}
-
-.content{
-   width: auto;
-   white-space: nowrap;
-}
-
-.face{
+  }
+  .content{
+    width: auto;
+    white-space: nowrap;
+  }
+  .face{
     display: inline-block;
     width: 64px;
     height: 64px;
-}​
+  }​
+  </style>
+</head>
 
-</style>
 <body>
 <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
 <script type="text/javascript" src="getStudData.js" ></script>
 <script type="text/javascript">
 
 $("document").ready(function() {
-    //load webpage from php
-    $.ajax({
-        url: 'http://people.ischool.berkeley.edu/~nkhalawi/projects/iolab_proj4/curl2.php #content-area',
-        success: function(data) {
-            cleanText(data);
-            studentGraph();
-        }
-    });
-
+  //load webpage from php
+  $.ajax({
+    // Manually input your url here:
+    url: 'http://people.ischool.berkeley.edu/~taeil2/ischoolppl/curl2.php #content-area',
+    success: function(data) {
+      // Pulls data from the ischool ppl website
+      cleanText(data);
+      // console.log all important objects available
+      console.log('phraseCountArray:');
+      console.log(phraseCountArray);
+      console.log('focusCategory:');
+      console.log(focusCategory);
+      console.log('categoryFocus:');
+      console.log(categoryFocus);
+      console.log('students:')
+      console.log(students);
+      // create graph
+      createGraphData();
+      studentGraph();
+    }
+  });
 });
 
-
 Array.prototype.pushUnique = function (item){
-    if(this.indexOf(item) == -1) {
-        this.push(item);
-        return true;
-    }
-    return false;
+  if(this.indexOf(item) == -1) {
+    this.push(item);
+    return true;
+  }
+  return false;
 }
-
-
 
 var nodes = [],
     links = [],
@@ -82,186 +91,193 @@ var nodes = [],
     kCategoryRaw = 3,
     kCategory = 4;
 
+function createGraphData() {
+
+  // Array of categories {"Big Data": 0, "Design": 1, ...}
+  for (var studentKey in students){
+    // console.log(students[studentKey])
+    var studentCategories = students[studentKey][kCategory];
+    //console.log(students[studentKey], studentCategories);
+    for(var categoryKey in studentCategories) {
+      var category = studentCategories[categoryKey];
+      if(category && category.substring && !(category in categories)) {
+        categories[category] = Object.keys(categories).length;
+      }
+    }
+  }
+
+  // Add categories to nodes
+  for (var categoryKey in categories) {
+    nodes.push({"name": categoryKey, "group": 2, "size":phraseCountArray[categoryKey]});
+  }
+
+  var studentCount = nodes.length;
+
+  // Create nodes and links
+  for (var studentKey in students){
+    var student = students[studentKey];
+    var studentCategories = students[studentKey][kCategory];
+    // List of Arrays of student nodes [{"name": "Bob", "url": "", ...}]
+    nodes.push({
+      "name": student[kName],
+      "group": 1,
+      "url": student[kImage],
+      "class": student[kClass],
+      "id": student[kName].replace(/\s/g, "").toLowerCase()
+    });
+    for(var categoryKey in studentCategories) {
+      var category = studentCategories[categoryKey];
+      if(category && category.substring) {
+        // Array of links {"source":1,"target":0,"value":100}
+        links.push({
+            "source": studentCount,
+            "target": categories[category],
+            "value": 1
+        });
+      }
+    }
+    studentCount += 1;
+  }
+
+}
+
 function studentGraph() {
 
-    // Array of categories {"Big Data": 0, "Design": 1, ...}
-    for (var studentKey in students){
-        //console.log(students[studentKey])
-        var studentCategories = students[studentKey][kCategory];
-        //console.log(students[studentKey], studentCategories);
-        for(var categoryKey in studentCategories) {
-            var category = studentCategories[categoryKey];
-            if(category && category.substring && !(category in categories)) {
-                categories[category] = Object.keys(categories).length;
-            }
-        }
-    }
+  graph["nodes"] = nodes;
+  graph["links"] = links;
 
-    // Add categories to nodes
-    for (var categoryKey in categories) {
-        nodes.push({"name": categoryKey, "group": 2});
-    }
+  var w = 1400,
+      h = 800,
+      r = 5;
 
-    var studentCount = nodes.length;
-    // Create nodes and links
-    for (var studentKey in students){
-        var student = students[studentKey];
-        var studentCategories = students[studentKey][kCategory];
-        // List of Arrays of student nodes [{"name": "Bob", "url": "", ...}]
-        nodes.push({
-            "name": student[kName],
-            "group": 1,
-            "url": student[kImage],
-            "class": student[kClass],
-            "id": student[kName].replace(/\s/g, "").toLowerCase()
-        });
-        for(var categoryKey in studentCategories) {
-            var category = studentCategories[categoryKey];
-            if(category && category.substring) {
-                // Array of links {"source":1,"target":0,"value":100}
-                links.push({
-                    "source": studentCount,
-                    "target": categories[category],
-                    "value": 1
-                });
-            }
-        }
-        studentCount += 1;
-    }
+  var svg = d3.select("body").append("svg")
+      .attr("width", w)
+      .attr("height", h);
 
-    graph["nodes"] = nodes;
-    graph["links"] = links;
-
-    var w = 1400,
-        h = 800,
-        r = 5;
-
-    var svg = d3.select("body").append("svg")
-        .attr("width", w)
-        .attr("height", h);
-
-    var force = d3.layout.force()
-        .gravity(.05)
-        .charge(-150)
-        .linkDistance(10)
-        .linkStrength(0.1)
-        .size([w, h]);
+  var force = d3.layout.force()
+      .gravity(.05)
+      .charge(-150)
+      .linkDistance(10)
+      .linkStrength(0.1)
+      .size([w, h]);
 
 
-    force
-      .distance(function(d) {
-          return d.value
+  force
+    .distance(function(d) {
+      return d.value
+    })
+    .nodes(graph.nodes)
+    .links(graph.links)
+    .start();
+
+  var link = svg.selectAll(".link")
+    .data(graph.links)
+    .enter()
+    .append("line")
+    .attr("class", "link");
+
+  var node = svg.selectAll(".node")
+    .data(graph.nodes)
+    .enter()
+    .append("g")
+    .call(force.drag);
+
+  var color = d3.scale.category20();
+
+  /* append circle to node */
+  node.append("circle")
+    .attr("cursor", "pointer")
+    //.style("fill", "#A1B9E6")
+    .style("fill", function(d) {
+      if (d.class == "MIMS 2014") {
+        return "#aec7e8";
+      } else if (d.class == "MIMS 2013") {
+        return "#c5b0d5";
+      } else if (d.class == "Ph.D. Student") {
+        return "#ffbb78";
+      } else {
+        return "#6baed6";
+      }
+    })
+    .attr("id", function(d) { return d.id; })
+    .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
+    .on("mouseover", fade(.1))
+    .on("mouseout", fade(1))
+    .on("click", function(d,i) { alert("Hello world"); })
+    .attr("r", function(d) {
+      if(d.group == 1) {
+        return r;
+      } else {
+        return d.size*1.5;
+      }
+    });
+
+
+  /* append image to node *
+  node.append("image")
+      .attr("xlink:href", function(d) { return d.url; })
+      .attr("x", -52)
+      .attr("y", -52)
+      .attr("width", 64)
+      .attr("height", 64);
+  */
+  node.append("text")
+    .attr("dx", -30)
+    .attr("dy", 20)
+      .attr("class", function(d) {
+      if(d.group == 1) {
+          return "student";
+      } else {
+          return "category";
+      }
       })
-      .nodes(graph.nodes)
-      .links(graph.links)
-      .start();
+    .text(function(d) { return d.name });
 
-    var link = svg.selectAll(".link")
-      .data(graph.links)
-      .enter()
-      .append("line")
-      .attr("class", "link");
+  force.on("tick", function() {
+      link.attr("x1", function(d) { return d.source.x; })
+          .attr("y1", function(d) { return d.source.y; })
+          .attr("x2", function(d) { return d.target.x; })
+          .attr("y2", function(d) { return d.target.y; });
 
-    var node = svg.selectAll(".node")
-        .data(graph.nodes)
-        .enter()
-        .append("g")
-        .call(force.drag);
+      node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+  });
 
-    var color = d3.scale.category20();
+  var linkedByIndex = {};
+  graph.links.forEach(function(d) {
+      linkedByIndex[d.source.index + "," + d.target.index] = 1;
+  });
 
-    /* append circle to node */
-    node.append("circle")
-        .attr("cursor", "pointer")
-        //.style("fill", "#A1B9E6")
-        .style("fill", function(d) {
-            if (d.class == "MIMS 2014") {
-                return "#aec7e8";
-            } else if (d.class == "MIMS 2013") {
-                return "#c5b0d5";
-            } else if (d.class == "Ph.D. Student") {
-                return "#ffbb78";
-            } else {
-                return "#6baed6";
-            }
-        })
-        .attr("id", function(d) { return d.id; })
-        .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
-        .on("mouseover", fade(.1))
-        .on("mouseout", fade(1))
-        .attr("r", function(d) {
-            if(d.group == 1) {
-                return r;
-            } else {
-                return r*5;
-            }
-        });
+  function isConnected(a, b) {
+      return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
+  }
 
-    /* append image to node *
-    node.append("image")
-        .attr("xlink:href", function(d) { return d.url; })
-        .attr("x", -52)
-        .attr("y", -52)
-        .attr("width", 64)
-        .attr("height", 64);
-    */
-    node.append("text")
-      .attr("dx", -30)
-      .attr("dy", 20)
-        .attr("class", function(d) {
-        if(d.group == 1) {
-            return "student";
-        } else {
-            return "category";
-        }
-        })
-      .text(function(d) { return d.name });
+  function fade(opacity) {
+      return function(d) {
+          console.log(d)
+          node.style("stroke-opacity", function(o) {
+              thisOpacity = isConnected(d, o) ? 1 : opacity;
+              this.setAttribute('fill-opacity', thisOpacity);
+              return thisOpacity;
+          });
 
-    force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
+          link.style("stroke-opacity", opacity).style("stroke-opacity", function(o) {
+              return o.source === d || o.target === d ? 1 : opacity;
+          });
+      };
+  }
 
-        node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-    });
+  // for (i in students) {
+  //     $('.content').append('<img class="face" id='+ students[i][0].replace(/\s/g, "").toLowerCase() + ' src=' + students[i][1] + '></img>')
+  // }
+  /*
+  $('.face').mouseover(function(d){
+          d3.select("#" + d.id).call(fade(.1));
+  })
 
-    var linkedByIndex = {};
-    graph.links.forEach(function(d) {
-        linkedByIndex[d.source.index + "," + d.target.index] = 1;
-    });
-
-    function isConnected(a, b) {
-        return linkedByIndex[a.index + "," + b.index] || linkedByIndex[b.index + "," + a.index] || a.index == b.index;
-    }
-
-    function fade(opacity) {
-        return function(d) {
-            console.log(d)
-            node.style("stroke-opacity", function(o) {
-                thisOpacity = isConnected(d, o) ? 1 : opacity;
-                this.setAttribute('fill-opacity', thisOpacity);
-                return thisOpacity;
-            });
-
-            link.style("stroke-opacity", opacity).style("stroke-opacity", function(o) {
-                return o.source === d || o.target === d ? 1 : opacity;
-            });
-        };
-    }
-
-    for (i in students) {
-        $('.content').append('<img class="face" id='+ students[i][0].replace(/\s/g, "").toLowerCase() + ' src=' + students[i][1] + '></img>')
-    }
-    /*
-    $('.face').mouseover(function(d){
-            d3.select("#" + d.id).call(fade(.1));
-    })
-
-    $('.face').mouseout(function(){
-        d3.select("#" + d.id).call(fade(1));
-    })
-    */
+  $('.face').mouseout(function(){
+      d3.select("#" + d.id).call(fade(1));
+  })
+  */
 };
 
 </script>
