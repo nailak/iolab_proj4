@@ -64,9 +64,39 @@ input[type="text"] {
       background: #fff; 
       }
 
-h1{color: #FF0066}
+h1{
+  color: #FF0066;
+  margin: 3px 0 4px 0;
+}
 #header{border-bottom: solid 1px #AAA;}
+#filters p{
+  margin: 7px 0 3px 0;
+}
+h3{
+  margin: 4px 0 3px 0;
+}
+h4{
+  font-size: 18px;
+  margin: 4px 0 3px 0;
+}
 
 .ui-autocomplete{
   font-size: 13px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+#infoList{
+  margin:0;
+  padding-left:20px;
+  clear:both;
+}
+#filter_results img{
+  float:left;
+  padding-bottom:5px;
+}
+#personTitle{
+  display:inline-block;
+  padding-left:7px;
+  font-size:16px;
 }

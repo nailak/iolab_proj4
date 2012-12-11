@@ -80,8 +80,20 @@ function createGraphData() {
     studentCount += 1;
   }
 
+  // Autocomplete functions
   $("#studName").autocomplete({
-    source: autocompleteNames
+    source: autocompleteNames,
+    // If you click a name, expand that node
+    select:function(event, ui){
+      $("#studName").val(ui.item.value);
+      nodes.forEach(function(d){
+        if (d.name == $("#studName").val()){
+          d.on = true;
+          expandPerson(d);
+          showPersonDetails(d);
+        }
+      });
+    }
   });
 }
 
@@ -200,8 +212,6 @@ function hidePerson(person){
   svg.select("#"+person.id+"text").text("");
 }
 
-
-
 function expandPerson(person){
   // remove all links tied to the node
   closePerson(person);
@@ -213,6 +223,20 @@ function expandPerson(person){
   });
   updateLinks();
   // add all links tied to the node
+}
+
+function showNodeDetails(name){
+  $("#filter_results").html('<h4>'+name+'</h3><ul id="infoList"></ul>');
+  for (var i=0;i<categoryFocus[name].length;i++){
+    $("#infoList").append('<li>'+categoryFocus[name][i]+'</li>');
+  }
+}
+
+function showPersonDetails(person){
+  $("#filter_results").html('<img src="'+person.url+'"><div id="personTitle"><div id="personName">'+person.name+'</div><div id="personClass">'+person.class+'</div></div><ul id="infoList"></ul>');
+  for (var i=0;i<students[person.name][3].length;i++){
+    $("#infoList").append('<li>'+students[person.name][3][i]+'</li>');
+  }
 }
 
 function closePerson(person){
@@ -256,17 +280,21 @@ function start(){
     .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
     .on("click", function(d) {
       if (d.group ==1){
-        if (d.on == false){
-          expandPerson(d);
-          d.on = true;
-        }
-        else{
-          closePerson(d);
-          d.on = false;
-        }
+        showPersonDetails(d);
+        // Since we can expand people by selecting them, I felt this was unnecessary.
+        // if (d.on == false){
+        //   expandPerson(d);
+        //   showPersonDetails(d);
+        //   d.on = true;
+        // }
+        // else{
+        //   closePerson(d);
+        //   d.on = false;
+        // }
       }
       // If clicking a group, expand that group
       else{
+        showNodeDetails(d.name);
         if (d.on == false){
           expandNode(d.name);
           d.on = true;
@@ -338,17 +366,21 @@ function updateLinks() {
     .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
     .on("click", function(d) {
       if (d.group ==1){
-        if (d.on == false){
-          expandPerson(d.name);
-          d.on = true;
-        }
-        else{
-          closePerson(d.name);
-          d.on = false;
-        }
+        showPersonDetails(d);
+        // Since we can expand people by selecting them, I felt this was unnecessary.
+        // if (d.on == false){
+        //   expandPerson(d);
+        //   showPersonDetails(d);
+        //   d.on = true;
+        // }
+        // else{
+        //   closePerson(d);
+        //   d.on = false;
+        // }
       }
       // If clicking a group, expand that group
       else{
+        showNodeDetails(d.name);
         if (d.on == false){
           expandNode(d.name);
           d.on = true;
