@@ -40,8 +40,8 @@ $('#filters').on('submit', function(e) {
 			//no data found .. display error message
 			// $('#error').show();
 
-			//else append results to the sidebar
-			$('#filter_results').append('<ul><li>Name</li><li>Degree</li><li>Focsu</li></ul>');
+			//else append results to the sidebar (this is dummy data)
+			$('#filter_results').append('<ul><li>'+searchName+'</li><li>'+box1+box2+box3+'</li><li>Focuses here</li></ul>');
 
     });
 
