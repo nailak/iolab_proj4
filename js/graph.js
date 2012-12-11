@@ -65,6 +65,7 @@ function createGraphData() {
       "id": student[kName].replace(/\s/g, "").replace(/\(|\)/g, "").toLowerCase(),
       "on":false
     });
+    autocompleteNames.push(student[kName]);
     for(var categoryKey in studentCategories) {
       var category = studentCategories[categoryKey];
       if(category && category.substring) {
@@ -78,6 +79,10 @@ function createGraphData() {
     }
     studentCount += 1;
   }
+
+  $("#studName").autocomplete({
+    source: autocompleteNames
+  });
 }
 
 //Initialize variables and graph
@@ -95,10 +100,11 @@ var masterNodes = [],
   linkedByIndex = {};
   categoryCount = 0;
   studentCount = 0;
+  autocompleteNames = [];
 
 var w = 1000,
   h = 1000,
-  r = 5;
+  r = 10;
 
 var color = d3.scale.category20();
 
@@ -109,9 +115,9 @@ var svg = d3.select("#chart").append("svg")
 
 var force = d3.layout.force()
   .gravity(.05)
-  .charge(-150)
-  .linkDistance(30)
-  .linkStrength(.1)
+  .charge(-200)
+  .linkDistance(50)
+  .linkStrength(.05)
   .size([w, h]);
 
 force
@@ -121,27 +127,20 @@ force
   .nodes(nodes)
   .links(links);
 
-// node.attr("cx", function(d) { return d.x = Math.max(r, Math.min(w - r, d.x)); })
-//         .attr("cy", function(d) { return d.y = Math.max(r, Math.min(h - r, d.y)); });
-
 force.on("tick", function() {
-    link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
+  link.attr("x1", function(d) { return d.source.x; })
+      .attr("y1", function(d) { return d.source.y; })
+      .attr("x2", function(d) { return d.target.x; })
+      .attr("y2", function(d) { return d.target.y; });
 
-    node.attr("transform", function(d) { return "translate(" + Math.min(Math.abs(d.x), w) + "," + Math.min(Math.abs(d.y), h) + ")"; });
+  node.attr("transform", function(d) { return "translate(" + Math.min(Math.abs(d.x), w) + "," + Math.min(Math.abs(d.y), h) + ")"; });
 });
 
 var link = svg.selectAll(".link");
 var node = svg.selectAll(".node");
 
 function initializeNodes(){
-  // var i=0;
-  // for (var key in categories){
-  //   nodes.push(masterNodes[i]);
-  //   i++;
-  // }
+
   masterNodes.forEach(function(d) {
     nodes.push(d);
   });
@@ -163,7 +162,6 @@ function expandNode(categoryName){
       var nodeIndex = d.source;
       nodes.forEach(function(e){
         if (e.index == nodeIndex){
-          e.on = true;
           showPerson(e);
         }
       });
@@ -172,16 +170,6 @@ function expandNode(categoryName){
   updateLinks();
 
   // add links and nodes to that node
-}
-
-function showPerson(person){
-  svg.select("#"+person.id+"circ").attr("r", r);
-  svg.select("#"+person.id+"text").text(person.name);
-}
-
-function hidePerson(person){
-  svg.select("#"+person.id+"circ").attr("r", 0);
-  svg.select("#"+person.id+"text").text("");
 }
 
 function closeNode(categoryName){
@@ -202,19 +190,48 @@ function closeNode(categoryName){
   // remove all links tied to the node
 }
 
-function expandPerson(){
+function showPerson(person){
+  svg.select("#"+person.id+"circ").attr("r", r);
+  svg.select("#"+person.id+"text").text(person.name);
+}
+
+function hidePerson(person){
+  svg.select("#"+person.id+"circ").attr("r", 0);
+  svg.select("#"+person.id+"text").text("");
+}
+
+
+
+function expandPerson(person){
   // remove all links tied to the node
+  closePerson(person);
+  masterLinks.forEach(function(d){
+    // masterLinks actually changes when you push an object to links. console.log masterLinks to see. The 2nd part of the if accomodates for this change.
+    if (d.source == person.index || d.source.index == person.index){
+      links.push(d);
+    }
+  });
+  updateLinks();
   // add all links tied to the node
 }
 
-function closePerson(){
+function closePerson(person){
   // remove the node and links tied to the node
+  var i = 0;
+  var spliceCounter = [];
+  links.forEach(function(d){
+    if (d.source.index == person.index){
+      spliceCounter.push(i);
+    }
+    i++;
+  });
+  var removedItems = 0;
+  spliceCounter.forEach(function(d){
+    links.splice(d-removedItems,1);
+    removedItems++;
+  });
+  updateLinks();
 }
-
-
-
-
-        
 
 function start(){
   node = node.data(force.nodes(), function(d) { return d.id;});
@@ -239,8 +256,14 @@ function start(){
     .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
     .on("click", function(d) {
       if (d.group ==1){
-        // enter functions for expanding or hiding person
-        console.log(d);
+        if (d.on == false){
+          expandPerson(d);
+          d.on = true;
+        }
+        else{
+          closePerson(d);
+          d.on = false;
+        }
       }
       // If clicking a group, expand that group
       else{
@@ -259,13 +282,13 @@ function start(){
         return 0;
       }
       else {
-        return d.size*1.5;
+        return d.size*2;
       }
     });
 
   node.append("text")
     .attr("dx", -30)
-    .attr("dy", 20)
+    .attr("dy", 25)
     .attr("id", function(d) { return d.id+"text"; })
     .attr("class", function(d) {
       if(d.group == 1) {
@@ -315,8 +338,14 @@ function updateLinks() {
     .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
     .on("click", function(d) {
       if (d.group ==1){
-        // enter functions for expanding or hiding person
-        console.log(d);
+        if (d.on == false){
+          expandPerson(d.name);
+          d.on = true;
+        }
+        else{
+          closePerson(d.name);
+          d.on = false;
+        }
       }
       // If clicking a group, expand that group
       else{
@@ -335,7 +364,7 @@ function updateLinks() {
         return 0;
       }
       else {
-        return d.size*1.5;
+        return d.size*2;
       }
     });
 
@@ -369,7 +398,6 @@ function updateLinks() {
   links.forEach(function(d){
     linkedPeople.push(d.source.index);
   });
-  console.log(linkedPeople);
 
   // First hide everyone 
   nodes.forEach(function(d){
