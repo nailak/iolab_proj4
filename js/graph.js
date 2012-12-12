@@ -46,7 +46,13 @@ function createGraphData() {
 
   // Add categories to nodes
   for (var categoryKey in categories) {
-    masterNodes.push({"name": categoryKey, "group": 2, "size":phraseCountArray[categoryKey], "on":false});
+    masterNodes.push({
+        "id": categoryKey.replace(/\s/g, "").replace(/\(|\)/g, "").toLowerCase(),
+        "name": categoryKey,
+        "group": 2,
+        "size":phraseCountArray[categoryKey],
+        "on":false
+    });
   }
 
   categoryCount = masterNodes.length;
@@ -90,11 +96,22 @@ function createGraphData() {
         if (d.name == $("#studName").val()){
           d.on = true;
           expandPerson(d);
+          updateLinks();
           showPersonDetails(d);
         }
       });
     }
   });
+
+  $(".checkbox_filters").click(function() {
+    var boxes = [];
+    $('.checkbox_filters:checkbox:checked').each(function(){
+      boxes.push($(this).val());
+    });
+    expandByClassType(boxes);
+    updateLinks();
+  });
+
 }
 
 //Initialize variables and graph
@@ -158,7 +175,7 @@ function initializeNodes(){
   });
   console.log('nodes:')
   console.log(nodes);
-  start();
+  drawNodes();
 }
 
 // These are the functions for adding and removing nodes and links
@@ -221,22 +238,6 @@ function expandPerson(person){
       links.push(d);
     }
   });
-  updateLinks();
-  // add all links tied to the node
-}
-
-function showNodeDetails(name){
-  $("#filter_results").html('<h4>'+name+'</h3><ul id="infoList"></ul>');
-  for (var i=0;i<categoryFocus[name].length;i++){
-    $("#infoList").append('<li>'+categoryFocus[name][i]+'</li>');
-  }
-}
-
-function showPersonDetails(person){
-  $("#filter_results").html('<img src="'+person.url+'"><div id="personTitle"><div id="personName">'+person.name+'</div><div id="personClass">'+person.class+'</div></div><ul id="infoList"></ul>');
-  for (var i=0;i<students[person.name][3].length;i++){
-    $("#infoList").append('<li>'+students[person.name][3][i]+'</li>');
-  }
 }
 
 function closePerson(person){
@@ -254,10 +255,38 @@ function closePerson(person){
     links.splice(d-removedItems,1);
     removedItems++;
   });
-  updateLinks();
+
 }
 
-function start(){
+function expandByClassType(classes){
+  classNodes = [];
+  masterNodes.forEach(function(d) {
+    if ($.inArray(d.class, classes) != -1){
+      expandPerson(d)
+      //classNodes.push(d.index);
+    } else {
+      closePerson(d);
+    }
+  });
+}
+
+
+function showNodeDetails(name){
+  $("#filter_results").html('<h4>'+name+'</h3><ul id="infoList"></ul>');
+  for (var i=0;i<categoryFocus[name].length;i++){
+    $("#infoList").append('<li>'+categoryFocus[name][i]+'</li>');
+  }
+}
+
+function showPersonDetails(person){
+  $("#filter_results").html('<img src="'+person.url+'"><div id="personTitle"><div id="personName">'+person.name+'</div><div id="personClass">'+person.class+'</div></div><ul id="infoList"></ul>');
+  for (var i=0;i<students[person.name][3].length;i++){
+    $("#infoList").append('<li>'+students[person.name][3][i]+'</li>');
+  }
+}
+
+
+function drawNodes(){
   node = node.data(force.nodes(), function(d) { return d.id;});
   node.enter().append("g")
     .call(force.drag)
@@ -281,16 +310,6 @@ function start(){
     .on("click", function(d) {
       if (d.group ==1){
         showPersonDetails(d);
-        // Since we can expand people by selecting them, I felt this was unnecessary.
-        // if (d.on == false){
-        //   expandPerson(d);
-        //   showPersonDetails(d);
-        //   d.on = true;
-        // }
-        // else{
-        //   closePerson(d);
-        //   d.on = false;
-        // }
       }
       // If clicking a group, expand that group
       else{
@@ -314,6 +333,7 @@ function start(){
       }
     });
 
+  node.selectAll("text").remove();
   node.append("text")
     .attr("dx", -30)
     .attr("dy", 25)
@@ -342,86 +362,8 @@ function updateLinks() {
   link.enter().append("line").attr("class", "link");
   link.exit().remove();
 
-  
-  // This code needs to be redone, or the links will appear on top of the nodes...
-  node = node.data(force.nodes(), function(d) { return d.id;});
-  node.enter().append("g")
-    .call(force.drag)
-    .attr("class", "node");
-  node.append("circle")
-    .attr("cursor", "pointer")
-    .attr("id", function(d) { return d.id+"circ"; })
-    //.style("fill", "#A1B9E6")
-    .style("fill", function(d) {
-      if (d.class == "MIMS 2014") {
-        return "#aec7e8";
-      } else if (d.class == "MIMS 2013") {
-        return "#c5b0d5";
-      } else if (d.class == "Ph.D. Student") {
-        return "#ffbb78";
-      } else {
-        return "#6baed6";
-      }
-    })
-    .style("stroke", function(d) { return d3.rgb(color(d.group)).darker(); })
-    .on("click", function(d) {
-      if (d.group ==1){
-        showPersonDetails(d);
-        // Since we can expand people by selecting them, I felt this was unnecessary.
-        // if (d.on == false){
-        //   expandPerson(d);
-        //   showPersonDetails(d);
-        //   d.on = true;
-        // }
-        // else{
-        //   closePerson(d);
-        //   d.on = false;
-        // }
-      }
-      // If clicking a group, expand that group
-      else{
-        showNodeDetails(d.name);
-        if (d.on == false){
-          expandNode(d.name);
-          d.on = true;
-        }
-        else{
-          closeNode(d.name);
-          d.on = false;
-        }
-      }
-    })
-    .attr("r", function(d) {
-      if(d.group == 1) {
-        return 0;
-      }
-      else {
-        return d.size*2;
-      }
-    });
+  drawNodes();
 
-  node.append("text")
-    .attr("dx", -30)
-    .attr("dy", 20)
-    .attr("id", function(d) { return d.id+"text"; })
-    .attr("class", function(d) {
-      if(d.group == 1) {
-        return "student";
-      }
-      else {
-        return "category";
-      }
-    })
-    .text(function(d) {
-      if(d.group == 2) {
-        return d.name;
-      }
-    });
-  // up to here
-
-  node.exit().remove();
-  
-  force.start(); //Note: This changes the format of links
 
   // Only nodes with connections are displayed
 
@@ -431,7 +373,7 @@ function updateLinks() {
     linkedPeople.push(d.source.index);
   });
 
-  // First hide everyone 
+  // First hide everyone
   nodes.forEach(function(d){
     if (d.group == 1){
       hidePerson(d);
